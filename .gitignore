@@ -1,0 +1,5 @@
+pkg
+src
+lemonade/
+*.tar.gz
+*.tar.zst
