@@ -6,7 +6,7 @@ pkgname=lemonade-server-git
 _pkgname=lemonade
 pkgdesc="Lemonade: Local LLM Serving with GPU and NPU acceleration (Server)"
 epoch=1
-pkgver=10.9.0 # Match this to your pinned tag version
+pkgver=10.10.0 # Match this to your pinned tag version
 pkgrel=1
 arch=('x86_64')
 url='https://github.com/lemonade-sdk/lemonade/'
@@ -20,7 +20,7 @@ provides=('lemonade-server')
 conflicts=('lemonade-server')
 backup=('etc/lemonade/lemonade.conf' 'etc/lemonade/secrets.conf')
 
-_tag=v10.9.0
+_tag=v10.10.0
 
 # Cleaned up: Removed the httplib tarball download completely
 source=(
