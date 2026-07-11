@@ -1,36 +1,26 @@
 # Maintainer: Mohammad Kamrul Hasan
-# Shamelessly stolen from the aur package of luciddream
-# https://aur.archlinux.org/packages/lemonade-server-git
-
 pkgname=lemonade-server-git
-_pkgname=lemonade
+pkgbase=lemonade
 pkgdesc="Lemonade: Local LLM Serving with GPU and NPU acceleration (Server)"
-epoch=1
-pkgver=10.10.0 # Match this to your pinned tag version
+pkgver=10.10.0
 pkgrel=1
 arch=('x86_64')
 url='https://github.com/lemonade-sdk/lemonade/'
 license=('Apache-2.0')
-
-# Included cpp-httplib here since the build now relies on the system version
-makedepends=('cmake' 'ninja' 'git' 'openssl' 'cpp-httplib')
-depends=('zstd' 'curl' 'libwebsockets' 'libdrm' 'libcap' 'systemd-libs' 'libayatana-appindicator' 'gtk3' 'libnotify')
-
 provides=('lemonade-server')
 conflicts=('lemonade-server')
 backup=('etc/lemonade/lemonade.conf' 'etc/lemonade/secrets.conf')
 
-_tag=v10.10.0
+makedepends=('cmake' 'ninja' 'git' 'openssl' 'cpp-httplib')
+depends=('zstd' 'curl' 'libwebsockets' 'libdrm' 'libcap' 'systemd-libs')
 
-# Cleaned up: Removed the httplib tarball download completely
 source=(
-  "${_pkgname}::git+https://github.com/lemonade-sdk/lemonade.git#tag=${_tag}"
-  sysusers.conf
-  tmpfiles.conf
-  zz-secrets.conf
+  "${pkgbase}::git+https://github.com/lemonade-sdk/lemonade.git"
+  'sysusers.conf'
+  'tmpfiles.conf'
+  'zz-secrets.conf'
 )
 
-# Only local configuration files need checksum verification now
 sha256sums=(
   'SKIP'
   '069d5612d570e83128d7eed7ffe4525943d75d22b9c84537d861833157e74b26'
@@ -38,33 +28,32 @@ sha256sums=(
   '9b57a15cd9596881d8141e8bff2504802c2dac415228b9d28a89cce25c482989'
 )
 
+# 3. Fixed: Robust pkgver function
+pkgver() {
+  cd "${pkgbase}"
+
+  # This regex:
+  # - Removes a leading 'v' (if present), everything from the first dash '-' onwards
+  # Example: 'v10.10.0-0-g123456' becomes '10.10.0'
+  git describe --long --tags | sed 's/^v//; s/-.*//'
+}
+
 build() {
-  local _cores=$(nproc)
-  if (( _cores > 8 )); then
-    _cores=8
-  fi
-
-  echo "Building with ${_cores} cores"
-
-  local cmake_options=(
-    -B build
-    -G Ninja
-    -S "${_pkgname}"
-    -W no-dev
-    -D REQUIRE_LINUX_TRAY=ON
-    -D CMAKE_BUILD_TYPE=Release
+  cmake -B build -G Ninja -S "${pkgbase}" \
+    -W no-dev \
+    -D REQUIRE_LINUX_TRAY=OFF \
+    -D CMAKE_BUILD_TYPE=Release \
     -D CMAKE_INSTALL_PREFIX=/usr
-  )
-  cmake "${cmake_options[@]}"
-  cmake --build build --parallel "${_cores}"
+
+  cmake --build build
 }
 
 package() {
   DESTDIR="$pkgdir" cmake --install build
 
-  install -dm0755 "${pkgdir}"/var/lib/lemonade
-  install -dm0755 "${pkgdir}"/etc/lemonade
-  install -dm0755 "${pkgdir}"/etc/lemonade/conf.d
+  install -dm0755 "${pkgdir}/var/lib/lemonade"
+  install -dm0755 "${pkgdir}/etc/lemonade"
+  install -dm0755 "${pkgdir}/etc/lemonade/conf.d"
 
   install -vDm644 "${srcdir}/sysusers.conf" "${pkgdir}/usr/lib/sysusers.d/lemonade-server.conf"
   install -vDm644 "${srcdir}/tmpfiles.conf" "${pkgdir}/usr/lib/tmpfiles.d/lemonade-server.conf"

@@ -1,5 +1,5 @@
-pkg
-src
+pkg/
+src/
 lemonade/
 *.tar.gz
 *.tar.zst
